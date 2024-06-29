@@ -26,8 +26,7 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
   @override
   void initState() {
     super.initState();
-    _typeController.text =
-        'Type of Crime'; // Default value for type of crime field
+    _typeController.text = ''; // Default value for type of crime field
     _descriptionController.text = ''; // Default value for description field
   }
 
@@ -50,12 +49,12 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
         'current_date': _currentDate.toIso8601String(),
         'crime_date': _crimeDate.toIso8601String(),
         'description': _descriptionController.text,
-        'markers': markersToJson(widget.markers),
+        'markers': jsonDecode(markersToJson(
+            widget.markers)), // Ensure markers are properly encoded
       };
 
       // Example API endpoint URL (replace with your actual endpoint)
-      var url = Uri.parse(
-          'http://your-fastapi-server-url.com/api/submit_crime_report');
+      var url = Uri.parse('http://192.168.170.99:8000/api/submit_crime_report');
 
       try {
         // Send POST request to backend
@@ -138,8 +137,27 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
                 },
               ),
               ListTile(
-                title: Text('Date and Time of Crime:'),
+                title: Text('Reporting Date'),
                 trailing: Text('${_crimeDate.toLocal()}'.split(' ')[0]),
+                onTap: () {
+                  // Do nothing, just show the date and time
+                },
+                leading: GestureDetector(
+                  onTap: () {
+                    // Do nothing
+                  },
+                  child: Icon(
+                    Icons.calendar_today,
+                    color: Colors
+                        .grey, // Optionally, change the color to indicate it's disabled
+                  ),
+                ),
+              ),
+              ListTile(
+                title: Text(
+                  'Date & Time of Crime: ${_crimeDate.toLocal().toString().split(' ')[0]} ${_crimeDate.toLocal().hour}:${_crimeDate.toLocal().minute}',
+                ),
+                trailing: Icon(Icons.access_time),
                 onTap: () async {
                   DateTime? pickedDateTime = await showDatePicker(
                     context: context,
@@ -147,38 +165,22 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
                   );
-                  if (pickedDateTime != null && pickedDateTime != _crimeDate) {
-                    setState(() {
-                      _crimeDate = DateTime(
-                        pickedDateTime.year,
-                        pickedDateTime.month,
-                        pickedDateTime.day,
-                        _crimeDate.hour,
-                        _crimeDate.minute,
-                      );
-                    });
-                  }
-                },
-              ),
-              ListTile(
-                title: Text(
-                    'Time of Crime: ${_crimeDate.toLocal().hour}:${_crimeDate.toLocal().minute}'),
-                trailing: Icon(Icons.access_time),
-                onTap: () async {
-                  TimeOfDay? pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.fromDateTime(_crimeDate),
-                  );
-                  if (pickedTime != null) {
-                    setState(() {
-                      _crimeDate = DateTime(
-                        _crimeDate.year,
-                        _crimeDate.month,
-                        _crimeDate.day,
-                        pickedTime.hour,
-                        pickedTime.minute,
-                      );
-                    });
+                  if (pickedDateTime != null) {
+                    TimeOfDay? pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(_crimeDate),
+                    );
+                    if (pickedTime != null) {
+                      setState(() {
+                        _crimeDate = DateTime(
+                          pickedDateTime.year,
+                          pickedDateTime.month,
+                          pickedDateTime.day,
+                          pickedTime.hour,
+                          pickedTime.minute,
+                        );
+                      });
+                    }
                   }
                 },
               ),

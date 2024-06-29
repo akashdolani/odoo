@@ -55,13 +55,17 @@ class _MapPageState extends State<MapPage> {
   }
 
   void _onMapTapped(LatLng position) {
-    final marker = Marker(
-      markerId: MarkerId(position.toString()),
-      position: position,
-    );
-    setState(() {
-      _markers.add(marker);
-    });
+    if (_markers.length < 5) {
+      final marker = Marker(
+        markerId: MarkerId(position.toString()),
+        position: position,
+      );
+      setState(() {
+        _markers.add(marker);
+      });
+    } else {
+      _showSnackBar('You can only add up to 5 markers.');
+    }
   }
 
   Future<void> _shareMarkers() async {

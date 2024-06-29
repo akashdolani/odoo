@@ -1,67 +1,42 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, Query, Body
 from pydantic import BaseModel
-from typing import List
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from typing import List, Optional
 from datetime import datetime
+from typing import List, Dict
 
-# SQLAlchemy setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///./crime_reports.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-# Define SQLAlchemy models
-class CrimeReport(Base):
-    __tablename__ = "crime_reports"
-
-    id = Column(Integer, primary_key=True, index=True)
-    type_of_crime = Column(String, index=True)
-    location = Column(String, index=True)
-    current_date = Column(DateTime, default=datetime.utcnow)
-    crime_date = Column(DateTime)
-    description = Column(Text)
-
-Base.metadata.create_all(bind=engine)
-
-# FastAPI app instance
 app = FastAPI()
 
-# Pydantic models for request/response validation
-class CrimeReportCreate(BaseModel):
+class Marker(BaseModel):
+    latitude: float
+    longitude: float
+
+class CrimeReport(BaseModel):
     type_of_crime: str
     location: str
+    current_date: datetime
     crime_date: datetime
     description: str
+    markers: List[Marker]
 
-# Routes
-@app.post("/api/submit_crime_report", response_model=CrimeReport)
-def submit_crime_report(report: CrimeReportCreate):
-    db = SessionLocal()
-    try:
-        db_report = CrimeReport(
-            type_of_crime=report.type_of_crime,
-            location=report.location,
-            crime_date=report.crime_date,
-            description=report.description,
-        )
-        db.add(db_report)
-        db.commit()
-        db.refresh(db_report)
-        return db_report
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error submitting crime report: {str(e)}")
-    finally:
-        db.close()
+@app.post("/api/submit_crime_report")
+async def submit_crime_report(report: CrimeReport):
+    # Here you would process the crime report data
+    # For demonstration purposes, let's just print the received data
+    print("Received Crime Report:")
+    print(f"Type of Crime: {report.type_of_crime}")
+    print(f"Location: {report.location}")
+    print(f"Current Date: {report.current_date.date()}")
+    print(f"Current Time: {report.current_date.time().strftime('%H:%M:%S')}")
+    print(f"Crime Date: {report.crime_date.date()}")
+    print(f"Crime Time: {report.crime_date.time().strftime('%H:%M:%S')}")
+    print(f"Description: {report.description}")
+    print("Markers:")
+    for marker in report.markers:
+        print(f"Latitude: {marker.latitude}, Longitude: {marker.longitude}")
+    
+    # Assuming success in processing the report
+    return {"message": "Crime report submitted successfully"}
 
-@app.post("/api/upload_media")
-def upload_media(files: List[UploadFile] = File(...)):
-    # Handle file upload logic here (store files, etc.)
-    return {"files_uploaded": [file.filename for file in files]}
-
-# Run the FastAPI application with Uvicorn
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
