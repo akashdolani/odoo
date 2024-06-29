@@ -7,8 +7,12 @@ import 'dart:convert';
 
 class SubmitReportScreen extends StatefulWidget {
   final Set<Marker> markers;
+  final String userPhoneNumber;
 
-  SubmitReportScreen({required this.markers});
+  SubmitReportScreen({
+    required this.markers,
+    required this.userPhoneNumber,
+  });
 
   @override
   _SubmitReportScreenState createState() => _SubmitReportScreenState();
@@ -19,15 +23,15 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
   final _typeController = TextEditingController();
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
-  DateTime _currentDate = DateTime.now(); // Current date and time
-  DateTime _crimeDate = DateTime.now(); // Date and time of crime
+  DateTime _currentDate = DateTime.now();
+  DateTime _crimeDate = DateTime.now();
   List<XFile> _images = [];
 
   @override
   void initState() {
     super.initState();
-    _typeController.text = ''; // Default value for type of crime field
-    _descriptionController.text = ''; // Default value for description field
+    _typeController.text = '';
+    _descriptionController.text = '';
   }
 
   Future<void> _pickImages() async {
@@ -42,37 +46,38 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
 
   Future<void> _submitReport() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // Prepare data to send to backend
-      Map<String, dynamic> formData = {
-        'type_of_crime': _typeController.text,
-        'location': _locationController.text,
-        'current_date': _currentDate.toIso8601String(),
-        'crime_date': _crimeDate.toIso8601String(),
-        'description': _descriptionController.text,
-        'markers': jsonDecode(markersToJson(
-            widget.markers)), // Ensure markers are properly encoded
-      };
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://192.168.170.99:8000/api/submit_crime_report'),
+      );
 
-      // Example API endpoint URL (replace with your actual endpoint)
-      var url = Uri.parse('http://192.168.170.99:8000/api/submit_crime_report');
+      request.fields['type_of_crime'] = _typeController.text;
+      request.fields['location'] = _locationController.text;
+      request.fields['current_date'] = _currentDate.toIso8601String();
+      request.fields['crime_date'] = _crimeDate.toIso8601String();
+      request.fields['description'] = _descriptionController.text;
+      request.fields['markers'] = jsonEncode(widget.markers.map((marker) {
+        return {
+          'latitude': marker.position.latitude,
+          'longitude': marker.position.longitude,
+        };
+      }).toList());
+      request.fields['phone_number'] = widget.userPhoneNumber;
+
+      for (var image in _images) {
+        request.files.add(
+          await http.MultipartFile.fromPath('images', image.path),
+        );
+      }
 
       try {
-        // Send POST request to backend
-        var response = await http.post(
-          url,
-          body: jsonEncode(formData),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        );
+        var response = await request.send();
 
         if (response.statusCode == 200) {
-          // Handle success (optional)
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Crime report submitted successfully')),
           );
 
-          // Clear form and images after submission
           _formKey.currentState?.reset();
           setState(() {
             _images = [];
@@ -80,28 +85,16 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
             _crimeDate = DateTime.now();
           });
         } else {
-          // Handle error
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to submit crime report')),
           );
         }
       } catch (e) {
-        // Handle network or server errors
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error submitting crime report: $e')),
         );
       }
     }
-  }
-
-  String markersToJson(Set<Marker> markers) {
-    List<Map<String, dynamic>> markersList = markers.map((marker) {
-      return {
-        'latitude': marker.position.latitude,
-        'longitude': marker.position.longitude,
-      };
-    }).toList();
-    return jsonEncode(markersList);
   }
 
   @override
@@ -137,35 +130,21 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
                 },
               ),
               ListTile(
-                title: Text('Reporting Date'),
-                trailing: Text('${_crimeDate.toLocal()}'.split(' ')[0]),
-                onTap: () {
-                  // Do nothing, just show the date and time
-                },
-                leading: GestureDetector(
-                  onTap: () {
-                    // Do nothing
-                  },
-                  child: Icon(
-                    Icons.calendar_today,
-                    color: Colors
-                        .grey, // Optionally, change the color to indicate it's disabled
-                  ),
-                ),
+                title: Text(
+                    'Current Date & Time: ${_currentDate.toLocal().toString().split(' ')[0]} ${_currentDate.toLocal().hour}:${_currentDate.toLocal().minute}'),
               ),
               ListTile(
                 title: Text(
-                  'Date & Time of Crime: ${_crimeDate.toLocal().toString().split(' ')[0]} ${_crimeDate.toLocal().hour}:${_crimeDate.toLocal().minute}',
-                ),
+                    'Date & Time of Crime: ${_crimeDate.toLocal().toString().split(' ')[0]} ${_crimeDate.toLocal().hour}:${_crimeDate.toLocal().minute}'),
                 trailing: Icon(Icons.access_time),
                 onTap: () async {
-                  DateTime? pickedDateTime = await showDatePicker(
+                  DateTime? pickedDate = await showDatePicker(
                     context: context,
                     initialDate: _crimeDate,
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
                   );
-                  if (pickedDateTime != null) {
+                  if (pickedDate != null) {
                     TimeOfDay? pickedTime = await showTimePicker(
                       context: context,
                       initialTime: TimeOfDay.fromDateTime(_crimeDate),
@@ -173,9 +152,9 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
                     if (pickedTime != null) {
                       setState(() {
                         _crimeDate = DateTime(
-                          pickedDateTime.year,
-                          pickedDateTime.month,
-                          pickedDateTime.day,
+                          pickedDate.year,
+                          pickedDate.month,
+                          pickedDate.day,
                           pickedTime.hour,
                           pickedTime.minute,
                         );

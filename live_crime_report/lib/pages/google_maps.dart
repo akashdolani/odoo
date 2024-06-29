@@ -4,8 +4,13 @@ import 'package:geolocator/geolocator.dart';
 
 import 'submit_report.dart';
 
+// ignore: must_be_immutable
 class MapPage extends StatefulWidget {
-  const MapPage({Key? key}) : super(key: key);
+  String userPhoneNumber;
+  MapPage({
+    Key? key,
+    required this.userPhoneNumber,
+  }) : super(key: key);
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -78,6 +83,7 @@ class _MapPageState extends State<MapPage> {
       context,
       MaterialPageRoute(
         builder: (context) => SubmitReportScreen(
+          userPhoneNumber: widget.userPhoneNumber,
           markers: _markers,
         ),
       ),
