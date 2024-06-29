@@ -4,6 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:live_crime_report/pages/submit_report.dart';
+
 class MapPage extends StatefulWidget {
   const MapPage({Key? key}) : super(key: key);
 
@@ -81,7 +83,7 @@ class _MapPageState extends State<MapPage> {
     }
 
     String jsonData = markersToJson(_markers);
-    var url = Uri.parse('http://your-fastapi-server-url.com/api/save_markers');
+    var url = Uri.parse('http://192.168.170.99:8000/api/save_markers');
 
     try {
       var response = await http.post(
@@ -93,7 +95,13 @@ class _MapPageState extends State<MapPage> {
       );
 
       if (response.statusCode == 200) {
-        _showSnackBar('Markers shared successfully');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => SubmitReportScreen(
+                    markers: _markers,
+                  )),
+        );
       } else {
         _showSnackBar(
             'Failed to share markers. Status code: ${response.statusCode}');
@@ -164,7 +172,7 @@ class _MapPageState extends State<MapPage> {
                   ),
                   markers: _markers,
                   onTap: _onMapTapped,
-                  zoomControlsEnabled: false, // Disable built-in zoom controls
+                  zoomControlsEnabled: false,
                 ),
                 Positioned(
                   top: 10,
