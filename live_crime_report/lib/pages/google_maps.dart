@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-import 'package:live_crime_report/pages/submit_report.dart';
+import 'submit_report.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({Key? key}) : super(key: key);
@@ -66,49 +64,20 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
-  String markersToJson(Set<Marker> markers) {
-    List<Map<String, dynamic>> markersList = markers.map((marker) {
-      return {
-        'latitude': marker.position.latitude,
-        'longitude': marker.position.longitude,
-      };
-    }).toList();
-    return jsonEncode(markersList);
-  }
-
   Future<void> _shareMarkers() async {
     if (_markers.isEmpty) {
       _showNoMarkersDialog();
       return;
     }
 
-    String jsonData = markersToJson(_markers);
-    var url = Uri.parse('http://192.168.170.99:8000/api/save_markers');
-
-    try {
-      var response = await http.post(
-        url,
-        body: jsonData,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => SubmitReportScreen(
-                    markers: _markers,
-                  )),
-        );
-      } else {
-        _showSnackBar(
-            'Failed to share markers. Status code: ${response.statusCode}');
-      }
-    } catch (e) {
-      _showSnackBar('Error sharing markers: $e');
-    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SubmitReportScreen(
+          markers: _markers,
+        ),
+      ),
+    );
   }
 
   void _deleteMarkers() {

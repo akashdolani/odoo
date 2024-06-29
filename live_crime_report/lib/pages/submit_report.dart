@@ -19,9 +19,8 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
   final _typeController = TextEditingController();
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
-  DateTime _currentDate = DateTime.now();
-  DateTime _crimeDate = DateTime.now();
-  TimeOfDay _crimeTime = TimeOfDay.now();
+  DateTime _currentDate = DateTime.now(); // Current date and time
+  DateTime _crimeDate = DateTime.now(); // Date and time of crime
   List<XFile> _images = [];
 
   @override
@@ -44,21 +43,12 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
 
   Future<void> _submitReport() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // Convert TimeOfDay to DateTime for crime time
-      DateTime crimeDateTime = DateTime(
-        _crimeDate.year,
-        _crimeDate.month,
-        _crimeDate.day,
-        _crimeTime.hour,
-        _crimeTime.minute,
-      );
-
       // Prepare data to send to backend
       Map<String, dynamic> formData = {
         'type_of_crime': _typeController.text,
         'location': _locationController.text,
         'current_date': _currentDate.toIso8601String(),
-        'crime_date': crimeDateTime.toIso8601String(),
+        'crime_date': _crimeDate.toIso8601String(),
         'description': _descriptionController.text,
         'markers': markersToJson(widget.markers),
       };
@@ -89,7 +79,6 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
             _images = [];
             _currentDate = DateTime.now();
             _crimeDate = DateTime.now();
-            _crimeTime = TimeOfDay.now();
           });
         } else {
           // Handle error
@@ -149,52 +138,46 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
                 },
               ),
               ListTile(
-                title: Text(
-                    'Current Date: ${_currentDate.toLocal()}'.split(' ')[0]),
-                trailing: Icon(Icons.calendar_today),
+                title: Text('Date and Time of Crime:'),
+                trailing: Text('${_crimeDate.toLocal()}'.split(' ')[0]),
                 onTap: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: _currentDate,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                  );
-                  if (pickedDate != null && pickedDate != _currentDate) {
-                    setState(() {
-                      _currentDate = pickedDate;
-                    });
-                  }
-                },
-              ),
-              ListTile(
-                title: Text(
-                    'Date of Crime: ${_crimeDate.toLocal()}'.split(' ')[0]),
-                trailing: Icon(Icons.calendar_today),
-                onTap: () async {
-                  DateTime? pickedDate = await showDatePicker(
+                  DateTime? pickedDateTime = await showDatePicker(
                     context: context,
                     initialDate: _crimeDate,
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
                   );
-                  if (pickedDate != null && pickedDate != _crimeDate) {
+                  if (pickedDateTime != null && pickedDateTime != _crimeDate) {
                     setState(() {
-                      _crimeDate = pickedDate;
+                      _crimeDate = DateTime(
+                        pickedDateTime.year,
+                        pickedDateTime.month,
+                        pickedDateTime.day,
+                        _crimeDate.hour,
+                        _crimeDate.minute,
+                      );
                     });
                   }
                 },
               ),
               ListTile(
-                title: Text('Time of Crime: ${_crimeTime.format(context)}'),
+                title: Text(
+                    'Time of Crime: ${_crimeDate.toLocal().hour}:${_crimeDate.toLocal().minute}'),
                 trailing: Icon(Icons.access_time),
                 onTap: () async {
                   TimeOfDay? pickedTime = await showTimePicker(
                     context: context,
-                    initialTime: _crimeTime,
+                    initialTime: TimeOfDay.fromDateTime(_crimeDate),
                   );
-                  if (pickedTime != null && pickedTime != _crimeTime) {
+                  if (pickedTime != null) {
                     setState(() {
-                      _crimeTime = pickedTime;
+                      _crimeDate = DateTime(
+                        _crimeDate.year,
+                        _crimeDate.month,
+                        _crimeDate.day,
+                        pickedTime.hour,
+                        pickedTime.minute,
+                      );
                     });
                   }
                 },
