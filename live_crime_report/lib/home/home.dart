@@ -15,8 +15,11 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Color.fromRGBO(12, 12, 12, 1),
         appBar: AppBar(
-          title: Text('Home'),
+          backgroundColor: Color.fromRGBO(253, 112, 20, 1),
+          shadowColor: Colors.transparent,
+          title: Center(child: Text('Home')),
           actions: [
             IconButton(
               icon: Icon(Icons.logout),
@@ -39,23 +42,51 @@ class HomeScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => MapPage(
-                                userPhoneNumber: userPhoneNumber,
-                              )));
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MapPage(
+                        userPhoneNumber: userPhoneNumber,
+                      ),
+                    ),
+                  );
                 },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                      vertical: 16.0,
+                      horizontal: 32.0), // Adjust padding as needed
+                  textStyle: TextStyle(fontSize: 18.0), // Adjust text size
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                  ),
+                  primary: Color.fromRGBO(
+                      253, 112, 20, 1.0), // Background color RGB(253, 112, 20)
+                ),
                 child: Text('Submit Crime Report'),
               ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => PastReportsPage(
-                                userPhoneNumber: userPhoneNumber,
-                              )));
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PastReportsPage(
+                        userPhoneNumber: userPhoneNumber,
+                      ),
+                    ),
+                  );
                 },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                      vertical: 16.0,
+                      horizontal: 32.0), // Adjust padding as needed
+                  textStyle: TextStyle(fontSize: 18.0), // Adjust text size
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                  ),
+                  primary: Color.fromRGBO(
+                      253, 112, 20, 1.0), // Background color RGB(253, 112, 20)
+                ),
                 child: Text('View Pending Reports'),
               ),
             ],

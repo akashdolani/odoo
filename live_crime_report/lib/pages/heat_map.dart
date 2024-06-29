@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -39,30 +38,36 @@ class _CriminalMarkersState extends State<CriminalMarkers> {
   }
 
   Future<void> _fetchMarkers() async {
-    final response =
-        await http.get(Uri.parse('http://192.168.170.29:8000/api/get_markers'));
-    if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      Set<Marker> markers = {};
-      data.forEach((markerData) {
-        double lat = double.parse(markerData['latitude'].toString());
-        double lng = double.parse(markerData['longitude'].toString());
-        markers.add(
-          Marker(
-            markerId: MarkerId(markerData['CrimeID']),
-            position: LatLng(lat, lng),
-            infoWindow: InfoWindow(
-              title: markerData['CrimeID'],
-              snippet: 'Lat: $lat, Lng: $lng',
+    final url = Uri.parse('http://192.168.170.29:8000/api/get_markers');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        Set<Marker> markers = {};
+        data.forEach((markerData) {
+          markers.add(
+            Marker(
+              markerId: MarkerId(markerData['CrimeID']),
+              position: LatLng(
+                markerData['latitude'],
+                markerData['longitude'],
+              ),
+              infoWindow: InfoWindow(
+                title: markerData['CrimeID'],
+                snippet:
+                    'Lat: ${markerData['latitude']}, Lng: ${markerData['longitude']}',
+              ),
             ),
-          ),
-        );
-      });
-      setState(() {
-        _markers = markers;
-      });
-    } else {
-      print('Failed to load markers. Status code: ${response.statusCode}');
+          );
+        });
+        setState(() {
+          _markers = markers;
+        });
+      } else {
+        print('Failed to load markers. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error loading markers: $e');
     }
   }
 
@@ -75,8 +80,7 @@ class _CriminalMarkersState extends State<CriminalMarkers> {
       body: GoogleMap(
         mapType: MapType.normal,
         initialCameraPosition: CameraPosition(
-          target: LatLng(23.0845565,
-              72.629863), // Initial position if no markers are available
+          target: LatLng(23.0845565, 72.629863), // Adjust to center your map
           zoom: 12,
         ),
         markers: _markers,
