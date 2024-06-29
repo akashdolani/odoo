@@ -103,7 +103,11 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
       appBar: AppBar(
         title: Text('Submit Crime Report'),
       ),
-      body: Padding(
+      body: Container(
+        decoration: BoxDecoration(
+          color: Color.fromRGBO(
+              12, 12, 12, 1.0), // Background color RGBA(12, 12, 12, 1.0)
+        ),
         padding: EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -131,11 +135,13 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
               ),
               ListTile(
                 title: Text(
-                    'Current Date & Time: ${_currentDate.toLocal().toString().split(' ')[0]} ${_currentDate.toLocal().hour}:${_currentDate.toLocal().minute}'),
+                  'Current Date & Time: ${_currentDate.toLocal().toString().split(' ')[0]} ${_currentDate.toLocal().hour}:${_currentDate.toLocal().minute}',
+                ),
               ),
               ListTile(
                 title: Text(
-                    'Date & Time of Crime: ${_crimeDate.toLocal().toString().split(' ')[0]} ${_crimeDate.toLocal().hour}:${_crimeDate.toLocal().minute}'),
+                  'Date & Time of Crime: ${_crimeDate.toLocal().toString().split(' ')[0]} ${_crimeDate.toLocal().hour}:${_crimeDate.toLocal().minute}',
+                ),
                 trailing: Icon(Icons.access_time),
                 onTap: () async {
                   DateTime? pickedDate = await showDatePicker(
@@ -179,6 +185,18 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
                 onPressed: _pickImages,
                 icon: Icon(Icons.camera_alt),
                 label: Text('Upload Images'),
+                style: ElevatedButton.styleFrom(
+                  primary: Color.fromRGBO(
+                      253, 112, 20, 1.0), // Background color RGB(253, 112, 20)
+                  textStyle: TextStyle(fontSize: 18.0), // Adjust text size
+                  padding: EdgeInsets.symmetric(
+                      vertical: 16.0,
+                      horizontal: 32.0), // Adjust padding as needed
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                  ),
+                ),
               ),
               SizedBox(height: 10),
               _images.isNotEmpty
@@ -199,6 +217,18 @@ class _SubmitReportScreenState extends State<SubmitReportScreen> {
               ElevatedButton(
                 onPressed: _submitReport,
                 child: Text('Submit Report'),
+                style: ElevatedButton.styleFrom(
+                  primary: Color.fromRGBO(
+                      253, 112, 20, 1.0), // Background color RGB(253, 112, 20)
+                  textStyle: TextStyle(fontSize: 18.0), // Adjust text size
+                  padding: EdgeInsets.symmetric(
+                      vertical: 16.0,
+                      horizontal: 32.0), // Adjust padding as needed
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                  ),
+                ),
               ),
             ],
           ),
